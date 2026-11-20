@@ -44,4 +44,28 @@ interface CubeDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertSettings(settings: AppSettingsEntity)
+
+    @Query("SELECT * FROM user_profile WHERE id = 1 LIMIT 1")
+    fun observeUserProfile(): Flow<UserProfileEntity?>
+
+    @Query("SELECT * FROM user_profile WHERE id = 1 LIMIT 1")
+    suspend fun getUserProfileOnce(): UserProfileEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertUserProfile(profile: UserProfileEntity)
+
+    @Query("DELETE FROM user_profile")
+    suspend fun clearUserProfile()
+
+    @Query("SELECT * FROM wca_solves ORDER BY timestamp DESC")
+    fun observeAllWcaSolves(): Flow<List<WcaSolveEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertWcaSolve(solve: WcaSolveEntity): Long
+
+    @Query("UPDATE wca_solves SET penaltyName = :penaltyName WHERE id = :id")
+    suspend fun updateWcaSolvePenalty(id: Long, penaltyName: String)
+
+    @Query("DELETE FROM wca_solves WHERE id = :id")
+    suspend fun deleteWcaSolveById(id: Long)
 }

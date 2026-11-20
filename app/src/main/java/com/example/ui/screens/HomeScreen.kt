@@ -62,15 +62,30 @@ import com.example.ui.theme.ToyGreen
 import com.example.ui.theme.ToyOrange
 import com.example.viewmodel.HomeUiState
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Timer
+import com.example.data.LocalAppLanguage
+import com.example.ui.theme.OutlineSoft
+import com.example.ui.theme.SoftCoralSurface
+import com.example.ui.theme.ToyPurple
+
 @Composable
 fun HomeScreen(
     state: HomeUiState,
     onOpenScanner: () -> Unit,
     onStartPractice: () -> Unit,
+    onOpenTutorial: () -> Unit,
+    onOpenCompetitionTimer: () -> Unit,
     onOpenStats: () -> Unit,
     onChangeDailyTarget: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val lang = LocalAppLanguage.current
+    val profile = state.userProfile
+    val mode = profile?.trainingMode()
+
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
@@ -116,7 +131,7 @@ fun HomeScreen(
                                     color = SunnyYellow
                                 ) {
                                     Text(
-                                        text = "CFOP Kids Academy",
+                                        text = if (mode != null) tr(mode.viTitle, mode.enTitle) else "CFOP Kids Academy",
                                         style = MaterialTheme.typography.labelLarge,
                                         color = InkPrimary,
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -124,15 +139,26 @@ fun HomeScreen(
                                 }
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(
-                                    text = tr("Xin chào nhà vô địch Rubik!", "Hello, Rubik's Champion!"),
+                                    text = if (profile != null && profile.name.isNotBlank()) {
+                                        tr("Xin chào ${profile.name}!", "Hello, ${profile.name}!")
+                                    } else {
+                                        tr("Xin chào nhà vô địch Rubik!", "Hello, Rubik's Champion!")
+                                    },
                                     style = MaterialTheme.typography.headlineMedium,
                                     color = InkPrimary
                                 )
                                 Text(
-                                    text = tr(
-                                        "Quay video 30s để giải CFOP tối ưu & luyện tốc độ mỗi ngày.",
-                                        "Record a 30s video for optimal CFOP steps & daily speed training."
-                                    ),
+                                    text = if (profile != null) {
+                                        tr(
+                                            "Mục tiêu: ${profile.targetLevel.title(lang)} • ${profile.targetLevel.recommendedMethod(lang)}",
+                                            "Goal: ${profile.targetLevel.title(lang)} • ${profile.targetLevel.recommendedMethod(lang)}"
+                                        )
+                                    } else {
+                                        tr(
+                                            "Quay video 30s để giải CFOP tối ưu & luyện tốc độ mỗi ngày.",
+                                            "Record a 30s video for optimal CFOP steps & daily speed training."
+                                        )
+                                    },
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = InkSecondary
                                 )
@@ -185,6 +211,88 @@ fun HomeScreen(
                             style = MaterialTheme.typography.titleMedium,
                             color = InkPrimary
                         )
+                    }
+                }
+            }
+
+            // Quick Launch Grid: Tutorial & Fullscreen WCA Competition Timer
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable(onClick = onOpenTutorial)
+                            .testTag("home_open_tutorial_button"),
+                        shape = RoundedCornerShape(20.dp),
+                        color = SoftAmberSurface,
+                        border = BorderStroke(1.5.dp, ToyOrange.copy(alpha = 0.45f))
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = ToyOrange,
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Filled.MenuBook, contentDescription = null, tint = Color.White)
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = tr("Tutorial & Thế Cờ", "CFOP Tutorial"),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = InkPrimary
+                            )
+                            Text(
+                                text = tr("Cẩm nang & Luyện OLL/PLL 3D", "Handbook & 3D Alg Trainer"),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = InkSecondary
+                            )
+                        }
+                    }
+
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable(onClick = onOpenCompetitionTimer)
+                            .testTag("home_open_wca_timer_button"),
+                        shape = RoundedCornerShape(20.dp),
+                        color = Color(0xFF131B2E),
+                        border = BorderStroke(1.5.dp, ToyPurple.copy(alpha = 0.6f))
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = ToyPurple,
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Filled.Timer, contentDescription = null, tint = Color.White)
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = tr("WCA Timer Thi Đấu", "WCA Comp Timer"),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = if (state.wcaTotalSolves > 0) {
+                                    "PB: ${state.wcaPb.format()} • Ao5: ${state.wcaAo5.format()}"
+                                } else {
+                                    tr("Toàn màn hình • 15s WCA", "Fullscreen • 15s WCA Inspect")
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.78f)
+                            )
+                        }
                     }
                 }
             }

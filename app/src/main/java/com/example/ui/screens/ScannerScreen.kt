@@ -81,6 +81,7 @@ import com.example.data.LocalAppLanguage
 import com.example.data.tr
 import com.example.rubik.CubeColor
 import com.example.scanner.RubikColorClassifier
+import com.example.scanner.ScanSoundPlayer
 import com.example.ui.components.MiniFaceGrid
 import com.example.ui.components.ToyBlockCard
 import com.example.ui.components.toStickerColor
@@ -91,6 +92,7 @@ import com.example.ui.theme.SoftCoralSurface
 import com.example.ui.theme.ToyGreen
 import com.example.ui.theme.ToyOrange
 import com.example.ui.theme.ToyRed
+import com.example.viewmodel.ScanSoundEvent
 import com.example.viewmodel.ScannerPhase
 import com.example.viewmodel.ScannerUiState
 import com.example.viewmodel.ScannerViewModel
@@ -100,6 +102,7 @@ import java.util.concurrent.Executors
 @Composable
 fun ScannerScreen(
     state: ScannerUiState,
+    soundEnabled: Boolean,
     viewModel: ScannerViewModel,
     onCubeScannedSuccess: () -> Unit,
     onSwitchToPractice: () -> Unit,
@@ -117,6 +120,16 @@ fun ScannerScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
         hasCameraPermission = granted
+    }
+
+    LaunchedEffect(viewModel, soundEnabled) {
+        viewModel.soundEvents.collect { event ->
+            if (!soundEnabled) return@collect
+            when (event) {
+                ScanSoundEvent.SINGLE_FACE_CAPTURED -> ScanSoundPlayer.playSingleFaceBeep()
+                ScanSoundEvent.ALL_SIX_FACES_CAPTURED -> ScanSoundPlayer.playAllSixFacesBeep()
+            }
+        }
     }
 
     LaunchedEffect(state.phase) {

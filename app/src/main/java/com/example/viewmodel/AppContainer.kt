@@ -4,6 +4,8 @@ import android.content.Context
 import com.example.data.AppDatabase
 import com.example.data.SettingsRepository
 import com.example.data.TrainingRepository
+import com.example.data.UserProfileRepository
+import com.example.data.WcaTimerRepository
 import com.example.rubik.CubeState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,9 +18,12 @@ data class ActiveCubeChallenge(
 )
 
 class AppContainer(context: Context) {
+    val appContext: Context = context.applicationContext
     private val database = AppDatabase.getInstance(context)
     val trainingRepository = TrainingRepository(database.cubeDao())
     val settingsRepository = SettingsRepository(database.cubeDao())
+    val userProfileRepository = UserProfileRepository(database.cubeDao())
+    val wcaTimerRepository = WcaTimerRepository(database.cubeDao())
 
     private val _activeChallenge = MutableStateFlow(createPracticeChallenge())
     val activeChallenge: StateFlow<ActiveCubeChallenge> = _activeChallenge.asStateFlow()

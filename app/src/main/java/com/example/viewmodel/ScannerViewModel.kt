@@ -10,11 +10,19 @@ import com.example.rubik.CubeValidator
 import com.example.scanner.FaceSampleResult
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+enum class ScanSoundEvent {
+    SINGLE_FACE_CAPTURED,
+    ALL_SIX_FACES_CAPTURED
+}
 
 sealed interface ScannerPhase {
     data object Ready : ScannerPhase
@@ -46,6 +54,9 @@ class ScannerViewModel(
 
     private val _uiState = MutableStateFlow(ScannerUiState())
     val uiState: StateFlow<ScannerUiState> = _uiState.asStateFlow()
+
+    private val _soundEvents = MutableSharedFlow<ScanSoundEvent>(extraBufferCapacity = 8)
+    val soundEvents: SharedFlow<ScanSoundEvent> = _soundEvents.asSharedFlow()
 
     private var countdownJob: Job? = null
     private var lastFrameMs: Long = 0L
@@ -138,8 +149,13 @@ class ScannerViewModel(
                         )
                     }
 
-                    if (isNewFace && updatedFaces.size == 6) {
-                        finishRecordingAndValidate()
+                    if (isNewFace) {
+                        if (updatedFaces.size == 6) {
+                            _soundEvents.tryEmit(ScanSoundEvent.ALL_SIX_FACES_CAPTURED)
+                            finishRecordingAndValidate()
+                        } else {
+                            _soundEvents.tryEmit(ScanSoundEvent.SINGLE_FACE_CAPTURED)
+                        }
                     }
                 }
             }

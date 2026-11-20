@@ -311,7 +311,9 @@ fun Interactive3DCubeView(
     currentStepIndex: Int,
     activeMove: CubeMove?,
     playStepDelayMs: Long,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onUserSwipeToken: ((String) -> Unit)? = null,
+    lastManualMoveTrigger: Pair<Long, CubeMove?>? = null
 ) {
     val textMeasurer = rememberTextMeasurer()
     val infiniteTransition = rememberInfiniteTransition(label = "arrowPulse3D")
@@ -379,6 +381,24 @@ fun Interactive3DCubeView(
         }
     }
 
+    // Also animate brief slice turn in Interactive Trainer mode when lastManualMoveTrigger updates
+    var lastManualSeq by remember { mutableStateOf(0L) }
+    LaunchedEffect(lastManualMoveTrigger) {
+        val trigger = lastManualMoveTrigger ?: return@LaunchedEffect
+        val (seq, move) = trigger
+        if (seq == 0L || seq == lastManualSeq || move == null) return@LaunchedEffect
+        lastManualSeq = seq
+        animBaseCube = cube.applyMove(move.inverse())
+        animMove = move
+        animStep = null
+        animProgress.snapTo(0f)
+        animProgress.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 190, easing = FastOutSlowInEasing)
+        )
+        animMove = null
+    }
+
     val renderedCube = if (animMove != null) animBaseCube else cube
     val activeSliceFace = animMove?.face
     val activeSliceAngle = if (animMove != null) {
@@ -390,18 +410,70 @@ fun Interactive3DCubeView(
     }
 
     Box(modifier = modifier) {
+        var canvasSize by remember { mutableStateOf(Size.Zero) }
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
                 .testTag("cube_3d_canvas")
-                .pointerInput(Unit) {
-                    detectDragGestures { change, dragAmount ->
-                        change.consume()
-                        cameraAngleY -= dragAmount.x * 0.42f
-                        cameraAngleX = (cameraAngleX - dragAmount.y * 0.42f).coerceIn(-82f, 82f)
-                    }
+                .pointerInput(onUserSwipeToken != null) {
+                    var dragStart = Offset.Zero
+                    var accumDrag = Offset.Zero
+                    var hitCubieSpec: CubieFaceSpec? = null
+                    var swipeConsumed = false
+
+                    detectDragGestures(
+                        onDragStart = { startOffset ->
+                            dragStart = startOffset
+                            accumDrag = Offset.Zero
+                            swipeConsumed = false
+                            hitCubieSpec = if (onUserSwipeToken != null && canvasSize.width > 0f) {
+                                hitTestCubieFace(
+                                    touch = dragStart,
+                                    width = canvasSize.width,
+                                    height = canvasSize.height,
+                                    cameraAngleX = cameraAngleX,
+                                    cameraAngleY = cameraAngleY
+                                )
+                            } else null
+                        },
+                        onDragEnd = {
+                            hitCubieSpec = null
+                            swipeConsumed = false
+                        },
+                        onDragCancel = {
+                            hitCubieSpec = null
+                            swipeConsumed = false
+                        },
+                        onDrag = { change, dragAmount ->
+                            change.consume()
+                            val hit = hitCubieSpec
+                            if (hit != null && onUserSwipeToken != null) {
+                                if (!swipeConsumed) {
+                                    accumDrag += dragAmount
+                                    if (accumDrag.getDistance() >= 34f) {
+                                        val token = resolveSwipeMoveToken(
+                                            spec = hit,
+                                            swipeDelta = accumDrag,
+                                            width = canvasSize.width,
+                                            height = canvasSize.height,
+                                            cameraAngleX = cameraAngleX,
+                                            cameraAngleY = cameraAngleY
+                                        )
+                                        if (token != null) {
+                                            onUserSwipeToken(token)
+                                        }
+                                        swipeConsumed = true
+                                    }
+                                }
+                            } else {
+                                cameraAngleY -= dragAmount.x * 0.42f
+                                cameraAngleX = (cameraAngleX - dragAmount.y * 0.42f).coerceIn(-82f, 82f)
+                            }
+                        }
+                    )
                 }
         ) {
+            canvasSize = size
             val w = size.width
             val h = size.height
             val viewerDistance = 7.2f
@@ -916,3 +988,129 @@ fun MiniFaceGrid(
         }
     }
 }
+
+private fun hitTestCubieFace(
+    touch: Offset,
+    width: Float,
+    height: Float,
+    cameraAngleX: Float,
+    cameraAngleY: Float
+): CubieFaceSpec? {
+    val viewerDistance = 7.2f
+    val fov = minOf(width, height) * 1.46f
+    val cameraOrigin = Point3D(0f, 0f, -viewerDistance)
+
+    var bestSpec: CubieFaceSpec? = null
+    var bestAvgZ = Float.MAX_VALUE
+
+    for (spec in CUBIE_FACE_SPECS) {
+        if (spec.faceletIndex == null) continue
+        val camNorm = spec.normal.rotateY(cameraAngleY).rotateX(cameraAngleX)
+        val camCenter = spec.center.rotateY(cameraAngleY).rotateX(cameraAngleX)
+        if (camNorm.dot(camCenter - cameraOrigin) >= 0f) continue
+
+        val camPlastic = spec.plasticVerts.map { it.rotateY(cameraAngleY).rotateX(cameraAngleX) }
+        val avgZ = (camPlastic[0].z + camPlastic[1].z + camPlastic[2].z + camPlastic[3].z) / 4f
+        if (avgZ >= bestAvgZ) continue
+
+        val poly = camPlastic.map { it.project(width, height, fov, viewerDistance) }
+        if (isPointInConvexQuad(touch, poly)) {
+            bestAvgZ = avgZ
+            bestSpec = spec
+        }
+    }
+    return bestSpec
+}
+
+private fun isPointInConvexQuad(p: Offset, poly: List<Offset>): Boolean {
+    if (poly.size < 3) return false
+    var pos = 0
+    var neg = 0
+    for (i in poly.indices) {
+        val a = poly[i]
+        val b = poly[(i + 1) % poly.size]
+        val cross = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x)
+        if (cross > 0f) pos++ else if (cross < 0f) neg++
+        if (pos > 0 && neg > 0) return false
+    }
+    return true
+}
+
+private fun resolveSwipeMoveToken(
+    spec: CubieFaceSpec,
+    swipeDelta: Offset,
+    width: Float,
+    height: Float,
+    cameraAngleX: Float,
+    cameraAngleY: Float
+): String? {
+    val dist = swipeDelta.getDistance()
+    if (dist < 1f) return null
+    val swipeDir = Offset(swipeDelta.x / dist, swipeDelta.y / dist)
+
+    val (uAxis, vAxis) = when (spec.faceId) {
+        FaceId.U -> Point3D(1f, 0f, 0f) to Point3D(0f, 0f, -1f)
+        FaceId.D -> Point3D(1f, 0f, 0f) to Point3D(0f, 0f, 1f)
+        FaceId.F -> Point3D(1f, 0f, 0f) to Point3D(0f, -1f, 0f)
+        FaceId.B -> Point3D(-1f, 0f, 0f) to Point3D(0f, -1f, 0f)
+        FaceId.R -> Point3D(0f, 0f, 1f) to Point3D(0f, -1f, 0f)
+        FaceId.L -> Point3D(0f, 0f, -1f) to Point3D(0f, -1f, 0f)
+    }
+
+    val viewerDistance = 7.2f
+    val fov = minOf(width, height) * 1.46f
+    fun proj(pt: Point3D): Offset =
+        pt.rotateY(cameraAngleY).rotateX(cameraAngleX).project(width, height, fov, viewerDistance)
+
+    val pC = proj(spec.center)
+    val pU = proj(spec.center + uAxis * 0.45f) - pC
+    val pV = proj(spec.center + vAxis * 0.45f) - pC
+
+    val uLen = pU.getDistance().coerceAtLeast(1e-4f)
+    val vLen = pV.getDistance().coerceAtLeast(1e-4f)
+    val uDot = (swipeDir.x * (pU.x / uLen)) + (swipeDir.y * (pU.y / uLen))
+    val vDot = (swipeDir.x * (pV.x / vLen)) + (swipeDir.y * (pV.y / vLen))
+
+    val dir3D = if (abs(uDot) >= abs(vDot)) {
+        if (uDot >= 0f) uAxis else uAxis * -1f
+    } else {
+        if (vDot >= 0f) vAxis else vAxis * -1f
+    }
+
+    // Cross normal x dir3D determines the rotation axis
+    val n = spec.normal
+    val cx = n.y * dir3D.z - n.z * dir3D.y
+    val cy = n.z * dir3D.x - n.x * dir3D.z
+    val cz = n.x * dir3D.y - n.y * dir3D.x
+
+    val axis = when {
+        abs(cx) > 0.5f -> RotationAxis.X
+        abs(cy) > 0.5f -> RotationAxis.Y
+        abs(cz) > 0.5f -> RotationAxis.Z
+        else -> return null
+    }
+
+    // Pick +90 or -90 matching CubeVisualizer's rotateAxis direction along dir3D
+    val rotatedPosDelta = spec.center.rotateAxis(axis, 90f) - spec.center
+    val rotatedNegDelta = spec.center.rotateAxis(axis, -90f) - spec.center
+    val isPositiveAngle = rotatedPosDelta.dot(dir3D) >= rotatedNegDelta.dot(dir3D)
+
+    return when (axis) {
+        RotationAxis.X -> when (spec.ix) {
+            1 -> if (isPositiveAngle) "R" else "R'"
+            -1 -> if (!isPositiveAngle) "L" else "L'"
+            else -> if (!isPositiveAngle) "M" else "M'"
+        }
+        RotationAxis.Y -> when (spec.iy) {
+            1 -> if (isPositiveAngle) "U" else "U'"
+            -1 -> if (!isPositiveAngle) "D" else "D'"
+            else -> if (!isPositiveAngle) "E" else "E'"
+        }
+        RotationAxis.Z -> when (spec.iz) {
+            -1 -> if (!isPositiveAngle) "F" else "F'"
+            1 -> if (isPositiveAngle) "B" else "B'"
+            else -> if (!isPositiveAngle) "S" else "S'"
+        }
+    }
+}
+
