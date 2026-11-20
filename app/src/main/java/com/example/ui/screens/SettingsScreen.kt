@@ -164,7 +164,7 @@ fun SettingsScreen(
                         }
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = tr("Hồ sơ người chơi (SQLite)", "Player Profile (SQLite)"),
+                                text = tr("Hồ sơ", "Profile"),
                                 style = MaterialTheme.typography.titleLarge,
                                 color = InkPrimary
                             )

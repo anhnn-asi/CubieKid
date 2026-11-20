@@ -302,8 +302,8 @@ fun CompetitionTimerScreen(
                         "Tap anywhere to STOP TIMER"
                     )
                     CompetitionTimerState.FINISHED -> tr(
-                        "Đã lưu vào SQLite • Chạm màn hình để bắt đầu lượt mới",
-                        "Saved to SQLite • Tap anywhere for next solve"
+                        "Đã lưu kết quả • Chạm màn hình để bắt đầu lượt mới",
+                        "Result saved • Tap anywhere for next solve"
                     )
                 },
                 style = MaterialTheme.typography.bodyLarge,

@@ -9,26 +9,35 @@ import org.json.JSONObject
 data class AlgorithmItem(
     val id: String,
     val name: String,
+    val nameEn: String,
     val group: String,
     val moves: String,
     val setupMoves: String,
     val categoryId: String,
     val recommendedLevels: List<RubikLevel>
-)
+) {
+    fun localizedName(lang: AppLanguage): String = if (lang == AppLanguage.EN) nameEn else name
+}
 
 data class AlgorithmCategory(
     val id: String,
     val name: String,
+    val nameEn: String,
     val description: String,
+    val descriptionEn: String,
     val algorithms: List<AlgorithmItem>
-)
+) {
+    fun localizedName(lang: AppLanguage): String = if (lang == AppLanguage.EN) nameEn else name
+    fun localizedDescription(lang: AppLanguage): String = if (lang == AppLanguage.EN) descriptionEn else description
+}
 
 data class HandbookAlgorithmEntry(
     val label: String,
     val formula: String,
     val noteVi: String = "",
     val noteEn: String = "",
-    val trainerAlgorithmId: String? = null
+    val trainerAlgorithmId: String? = null,
+    val labelEn: String = label
 )
 
 data class HandbookGroup(
@@ -79,7 +88,9 @@ class AlgorithmRepository(private val context: Context) {
                     val catObj = catArray.getJSONObject(i)
                     val catId = catObj.getString("id")
                     val catName = catObj.getString("name")
+                    val catNameEn = catObj.optString("name_en", "").ifBlank { stripVietnameseParen(catName) }
                     val catDesc = catObj.optString("description", "")
+                    val catDescEn = catObj.optString("description_en", catDesc)
                     val algArray = catObj.getJSONArray("algorithms")
                     val items = buildList {
                         for (j in 0 until algArray.length()) {
@@ -92,10 +103,13 @@ class AlgorithmRepository(private val context: Context) {
                                     }
                                 }
                             }
+                            val algName = a.getString("name")
+                            val algNameEn = a.optString("name_en", "").ifBlank { stripVietnameseParen(algName) }
                             add(
                                 AlgorithmItem(
                                     id = a.getString("id"),
-                                    name = a.getString("name"),
+                                    name = algName,
+                                    nameEn = algNameEn,
                                     group = a.optString("group", ""),
                                     moves = a.getString("moves"),
                                     setupMoves = a.getString("setup_moves"),
@@ -109,12 +123,18 @@ class AlgorithmRepository(private val context: Context) {
                         AlgorithmCategory(
                             id = catId,
                             name = catName,
+                            nameEn = catNameEn,
                             description = catDesc,
+                            descriptionEn = catDescEn,
                             algorithms = items
                         )
                     )
                 }
             }
+        }
+
+        private fun stripVietnameseParen(text: String): String {
+            return text.replace(Regex("\\s*\\([^)]*\\)\\s*$"), "").trim().ifEmpty { text }
         }
 
         val roadmapRows: List<LevelRoadmapRow> = listOf(
@@ -250,9 +270,27 @@ class AlgorithmRepository(private val context: Context) {
                             "Step 3 (Lookahead & Back-slotting): Fill back slots (BL, BR) first so remaining slots stay visible in front."
                         ),
                         entries = listOf(
-                            HandbookAlgorithmEntry("Thế 1 (Trắng ngang, màu trên khác nhau)", "U R U' R'", "Hoặc R U R' đưa thẳng vào rãnh", "Or direct R U R' insert"),
-                            HandbookAlgorithmEntry("Thế 2 (Trắng ngang, màu trên giống nhau)", "U' R U' R' U R U R'", "Giấu góc rồi ghép thanh 2 viên", "Hide corner, pair edge, then insert"),
-                            HandbookAlgorithmEntry("Thế 3 (Trắng hướng lên trời)", "U R U2 R' U R U' R'", "Khớp màu cạnh với tâm bên hông trước", "Match edge side color to center first")
+                            HandbookAlgorithmEntry(
+                                label = "Thế 1 (Trắng ngang, màu trên khác nhau)",
+                                formula = "U R U' R'",
+                                noteVi = "Hoặc R U R' đưa thẳng vào rãnh",
+                                noteEn = "Or direct R U R' insert",
+                                labelEn = "Case 1 (White facing side, mismatched top colors)"
+                            ),
+                            HandbookAlgorithmEntry(
+                                label = "Thế 2 (Trắng ngang, màu trên giống nhau)",
+                                formula = "U' R U' R' U R U R'",
+                                noteVi = "Giấu góc rồi ghép thanh 2 viên",
+                                noteEn = "Hide corner, pair edge, then insert",
+                                labelEn = "Case 2 (White facing side, matching top colors)"
+                            ),
+                            HandbookAlgorithmEntry(
+                                label = "Thế 3 (Trắng hướng lên trời)",
+                                formula = "U R U2 R' U R U' R'",
+                                noteVi = "Khớp màu cạnh với tâm bên hông trước",
+                                noteEn = "Match edge side color to center first",
+                                labelEn = "Case 3 (White facing up)"
+                            )
                         )
                     )
                 )
@@ -270,22 +308,22 @@ class AlgorithmRepository(private val context: Context) {
                         titleVi = "Bước 3.1: Tạo dấu cộng vàng (Edges)",
                         titleEn = "Step 3.1: Yellow Cross (Edges)",
                         entries = listOf(
-                            HandbookAlgorithmEntry("Hình chữ I (Đường thẳng ngang)", "F R U R' U' F'", trainerAlgorithmId = "2oll_line"),
-                            HandbookAlgorithmEntry("Hình chữ L nhỏ (Góc 9h & 12h)", "f R U R' U' f'", "Xoay 2 tầng trước (f)", "Wide front turn (f)", trainerAlgorithmId = "2oll_l_shape"),
-                            HandbookAlgorithmEntry("Dấu chấm (Chỉ có tâm vàng)", "F R U R' U' F' f R U R' U' f'", trainerAlgorithmId = "2oll_dot")
+                            HandbookAlgorithmEntry("Hình chữ I (Đường thẳng ngang)", "F R U R' U' F'", trainerAlgorithmId = "2oll_line", labelEn = "Line (Horizontal bar)"),
+                            HandbookAlgorithmEntry("Hình chữ L nhỏ (Góc 9h & 12h)", "f R U R' U' f'", "Xoay 2 tầng trước (f)", "Wide front turn (f)", trainerAlgorithmId = "2oll_l_shape", labelEn = "L-Shape (9 & 12 o'clock)"),
+                            HandbookAlgorithmEntry("Dấu chấm (Chỉ có tâm vàng)", "F R U R' U' F' f R U R' U' f'", trainerAlgorithmId = "2oll_dot", labelEn = "Dot (Center only)")
                         )
                     ),
                     HandbookGroup(
                         titleVi = "Bước 3.2: Lật 4 góc vàng (Corners)",
                         titleEn = "Step 3.2: Orient Corners",
                         entries = listOf(
-                            HandbookAlgorithmEntry("Sune (Con cá hướng góc dưới trái)", "R U R' U R U2 R'", trainerAlgorithmId = "oll_27_sune"),
-                            HandbookAlgorithmEntry("Anti-Sune (Con cá hướng góc trên phải)", "R U2 R' U' R U' R'", trainerAlgorithmId = "oll_26_antisune"),
-                            HandbookAlgorithmEntry("H (2 cặp đèn pha đối diện)", "R U R' U R U' R' U R U2 R'", trainerAlgorithmId = "oll_21_h"),
-                            HandbookAlgorithmEntry("Pi (1 đèn pha trái, 2 viên trước/sau)", "R U2 R2 U' R2 U' R2 U2 R", trainerAlgorithmId = "oll_22_pi"),
-                            HandbookAlgorithmEntry("Headlights / U (Đèn pha phía trước)", "R2 D R' U2 R D' R' U2 R'", trainerAlgorithmId = "oll_23_headlights"),
-                            HandbookAlgorithmEntry("Chameleon / T (2 vàng hướng ngang)", "r U R' U' r' F R F'", trainerAlgorithmId = "oll_24_chameleon"),
-                            HandbookAlgorithmEntry("Bowtie / L (2 góc chéo chưa lật)", "F' r U R' U' r' F R", trainerAlgorithmId = "oll_25_bowtie")
+                            HandbookAlgorithmEntry("Sune (Con cá hướng góc dưới trái)", "R U R' U R U2 R'", trainerAlgorithmId = "oll_27_sune", labelEn = "Sune (Fish pointing bottom-left)"),
+                            HandbookAlgorithmEntry("Anti-Sune (Con cá hướng góc trên phải)", "R U2 R' U' R U' R'", trainerAlgorithmId = "oll_26_antisune", labelEn = "Anti-Sune (Fish pointing top-right)"),
+                            HandbookAlgorithmEntry("H (2 cặp đèn pha đối diện)", "R U R' U R U' R' U R U2 R'", trainerAlgorithmId = "oll_21_h", labelEn = "H (2 opposite headlights)"),
+                            HandbookAlgorithmEntry("Pi (1 đèn pha trái, 2 viên trước/sau)", "R U2 R2 U' R2 U' R2 U2 R", trainerAlgorithmId = "oll_22_pi", labelEn = "Pi (Left headlights, front/back bars)"),
+                            HandbookAlgorithmEntry("Headlights / U (Đèn pha phía trước)", "R2 D R' U2 R D' R' U2 R'", trainerAlgorithmId = "oll_23_headlights", labelEn = "Headlights / U (Front headlights)"),
+                            HandbookAlgorithmEntry("Chameleon / T (2 vàng hướng ngang)", "r U R' U' r' F R F'", trainerAlgorithmId = "oll_24_chameleon", labelEn = "Chameleon / T (Side yellow corners)"),
+                            HandbookAlgorithmEntry("Bowtie / L (2 góc chéo chưa lật)", "F' r U R' U' r' F R", trainerAlgorithmId = "oll_25_bowtie", labelEn = "Bowtie / L (Diagonal corners)")
                         )
                     )
                 )
@@ -303,18 +341,18 @@ class AlgorithmRepository(private val context: Context) {
                         titleVi = "Bước 4.1: Hoán vị góc (Corners)",
                         titleEn = "Step 4.1: Corner Permutation",
                         entries = listOf(
-                            HandbookAlgorithmEntry("T-Perm / Aa-Perm (Có 1 cặp đèn pha bên trái)", "x R' U R' D2 R U' R' D2 R2 x'", "Hoặc dùng T-Perm khi đèn pha ở trái", "Or T-Perm with headlights left", trainerAlgorithmId = "pll_t_perm"),
-                            HandbookAlgorithmEntry("Y-Perm (Không có đèn pha — đổi chéo)", "F R U' R' U' R U R' F' R U R' U' R' F R F'", trainerAlgorithmId = "pll_y_perm")
+                            HandbookAlgorithmEntry("T-Perm / Aa-Perm (Có 1 cặp đèn pha bên trái)", "x R' U R' D2 R U' R' D2 R2 x'", "Hoặc dùng T-Perm khi đèn pha ở trái", "Or T-Perm with headlights left", trainerAlgorithmId = "pll_t_perm", labelEn = "T-Perm / Aa-Perm (Headlights on left)"),
+                            HandbookAlgorithmEntry("Y-Perm (Không có đèn pha — đổi chéo)", "F R U' R' U' R U R' F' R U R' U' R' F R F'", trainerAlgorithmId = "pll_y_perm", labelEn = "Y-Perm (No headlights — diagonal swap)")
                         )
                     ),
                     HandbookGroup(
                         titleVi = "Bước 4.2: Hoán vị cạnh (Edges)",
                         titleEn = "Step 4.2: Edge Permutation",
                         entries = listOf(
-                            HandbookAlgorithmEntry("Ua-Perm (3 cạnh ngược kim đồng hồ)", "R U' R U R U R U' R' U' R2", "Mặt hoàn chỉnh ở sau", "Solved bar at back", trainerAlgorithmId = "pll_ua_perm"),
-                            HandbookAlgorithmEntry("Ub-Perm (3 cạnh cùng kim đồng hồ)", "R2 U R U R' U' R' U' R' U R'", "Mặt hoàn chỉnh ở sau", "Solved bar at back", trainerAlgorithmId = "pll_ub_perm"),
-                            HandbookAlgorithmEntry("H-Perm (Đổi chéo 2 cặp cạnh đối diện)", "M2 U M2 U2 M2 U M2", trainerAlgorithmId = "pll_h_perm"),
-                            HandbookAlgorithmEntry("Z-Perm (Đổi 2 cặp cạnh kề nhau)", "M' U M2 U M2 U M' U2 M2", trainerAlgorithmId = "pll_z_perm")
+                            HandbookAlgorithmEntry("Ua-Perm (3 cạnh ngược kim đồng hồ)", "R U' R U R U R U' R' U' R2", "Mặt hoàn chỉnh ở sau", "Solved bar at back", trainerAlgorithmId = "pll_ua_perm", labelEn = "Ua-Perm (3 edges counter-clockwise)"),
+                            HandbookAlgorithmEntry("Ub-Perm (3 cạnh cùng kim đồng hồ)", "R2 U R U R' U' R' U' R' U R'", "Mặt hoàn chỉnh ở sau", "Solved bar at back", trainerAlgorithmId = "pll_ub_perm", labelEn = "Ub-Perm (3 edges clockwise)"),
+                            HandbookAlgorithmEntry("H-Perm (Đổi chéo 2 cặp cạnh đối diện)", "M2 U M2 U2 M2 U M2", trainerAlgorithmId = "pll_h_perm", labelEn = "H-Perm (Swap opposite edges)"),
+                            HandbookAlgorithmEntry("Z-Perm (Đổi 2 cặp cạnh kề nhau)", "M' U M2 U M2 U M' U2 M2", trainerAlgorithmId = "pll_z_perm", labelEn = "Z-Perm (Swap adjacent edges)")
                         )
                     )
                 )
@@ -509,8 +547,8 @@ class AlgorithmRepository(private val context: Context) {
                 shortTitleEn = "Roadmap",
                 titleVi = "8. Lộ Trình Luyện Tập Theo Trình Độ",
                 titleEn = "8. Level Training Roadmap",
-                summaryVi = "Đồng bộ trực tiếp với mục tiêu trong Hồ sơ người dùng (User Profile).",
-                summaryEn = "Synced directly with your User Profile level & target.",
+                summaryVi = "Đồng bộ trực tiếp với mục tiêu trong Hồ sơ của bạn.",
+                summaryEn = "Synced directly with your profile level & target.",
                 groups = emptyList() // Rendered with custom LevelRoadmap cards highlighted to user profile
             )
         )

@@ -195,8 +195,18 @@ class ExampleRobolectricTest {
                     "Algorithm ${alg.id} (${alg.name}) failed solve check",
                     com.example.viewmodel.TutorialViewModel.isCubeSolvedForCategory(solvedCube, cat.id)
                 )
+                val enName = alg.localizedName(com.example.data.AppLanguage.EN)
+                assertTrue(
+                    "English algorithm name contains non-ASCII Vietnamese text: $enName",
+                    enName.all { it.code < 128 }
+                )
                 totalTested++
             }
+            val enCatName = cat.localizedName(com.example.data.AppLanguage.EN)
+            assertTrue(
+                "English category name contains non-ASCII Vietnamese text: $enCatName",
+                enCatName.all { it.code < 128 }
+            )
         }
         assertTrue(totalTested >= 19)
     }

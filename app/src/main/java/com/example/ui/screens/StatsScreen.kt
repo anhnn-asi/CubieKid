@@ -77,8 +77,8 @@ fun StatsScreen(
                 )
                 Text(
                     text = tr(
-                        "Dữ liệu SQLite luyện tập và phân tích tốc độ CFOP",
-                        "SQLite practice logs & CFOP step speed breakdown"
+                        "Nhật ký luyện tập và phân tích tốc độ CFOP",
+                        "Practice history & CFOP step speed breakdown"
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = InkSecondary

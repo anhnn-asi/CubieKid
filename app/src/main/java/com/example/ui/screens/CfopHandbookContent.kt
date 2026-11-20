@@ -225,7 +225,7 @@ private fun StandardChapterCard(
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = entry.label,
+                                            text = tr(entry.label, entry.labelEn),
                                             style = MaterialTheme.typography.labelLarge,
                                             fontWeight = FontWeight.Bold,
                                             color = InkPrimary

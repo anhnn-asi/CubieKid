@@ -118,30 +118,30 @@ enum class CubieTrainingMode(
     val defaultShowArrows: Boolean
 ) {
     GUIDED_MODE(
-        viTitle = "Guided Mode (Học giải)",
+        viTitle = "Hướng dẫn từng bước",
         enTitle = "Guided Mode",
         viBehavior = "Bật mũi tên 3D chỉ hướng từng bước; ưu tiên hiểu công thức trước khi bấm giờ.",
         enBehavior = "3D directional arrows active step-by-step; focus on mastering moves without pressure.",
         defaultShowArrows = true
     ),
     PRACTICE_CFOP(
-        viTitle = "Practice CFOP",
+        viTitle = "Luyện tập CFOP",
         enTitle = "Practice CFOP",
-        viBehavior = "Luyện F2L trực quan & 2-Look OLL/PLL; tự động xáo trộn theo từng nhóm thế cờ.",
+        viBehavior = "Luyện F2L trực quan & 2-Look OLL/PLL; tự động xáo trộn theo từng nhóm thế.",
         enBehavior = "Intuitive F2L & 2-Look OLL/PLL training; algorithm-grouped drills.",
         defaultShowArrows = true
     ),
     SPEEDCUBING_WCA(
-        viTitle = "Speedcubing WCA",
+        viTitle = "Tốc độ WCA",
         enTitle = "Speedcubing WCA",
-        viBehavior = "Scramble 20 bước chuẩn WCA; thử thách Full OLL/PLL & đồng hồ thi đấu toàn màn hình.",
+        viBehavior = "Xáo trộn 20 bước chuẩn WCA; thử thách OLL/PLL & đồng hồ thi đấu toàn màn hình.",
         enBehavior = "20-move WCA Scrambles, Full OLL/PLL drills & fullscreen WCA timer.",
         defaultShowArrows = false
     ),
     PRO_ANALYTICS(
-        viTitle = "Pro Analytics",
+        viTitle = "Phân tích chuyên sâu",
         enTitle = "Pro Analytics",
-        viBehavior = "Full Speedcubing WCA + chỉ số TPS (Turns/s) & phân tích từng pha Cross, F2L, OLL, PLL.",
+        viBehavior = "Thi đấu WCA kèm thống kê tốc độ xoay & phân tích từng pha Cross, F2L, OLL, PLL.",
         enBehavior = "Full WCA Speedcubing + TPS analytics & Cross/F2L/OLL/PLL split tracking.",
         defaultShowArrows = false
     )

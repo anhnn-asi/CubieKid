@@ -13,11 +13,14 @@
     {
       "id": "2_look_oll",
       "name": "2-Look OLL",
+      "name_en": "2-Look OLL",
       "description": "Giải mặt vàng qua 2 bước: Tạo chữ thập vàng (3 công thức) và Lật góc vàng (7 công thức).",
+      "description_en": "Solve the yellow top in 2 steps: Yellow Cross (3 cases) & Orient Corners (7 cases).",
       "algorithms": [
         {
           "id": "2oll_dot",
           "name": "Dot (Chấm tâm)",
+          "name_en": "Dot",
           "group": "Step 1: Edges",
           "moves": "F R U R' U' F' f R U R' U' f'",
           "setup_moves": "f U R U' R' f' F U R U' R' F'",
@@ -37,6 +40,7 @@
         {
           "id": "2oll_l_shape",
           "name": "L-Shape (Chữ L)",
+          "name_en": "L-Shape",
           "group": "Step 1: Edges",
           "moves": "f R U R' U' f'",
           "setup_moves": "f U R U' R' f'",
@@ -56,6 +60,7 @@
         {
           "id": "2oll_line",
           "name": "Line (Đường thẳng)",
+          "name_en": "Line",
           "group": "Step 1: Edges",
           "moves": "F R U R' U' F'",
           "setup_moves": "F U R U' R' F'",
@@ -75,6 +80,7 @@
         {
           "id": "oll_27_sune",
           "name": "OLL 27 - Sune (Con cá hướng phải)",
+          "name_en": "OLL 27 - Sune",
           "group": "Step 2: Corners",
           "moves": "R U R' U R U2 R'",
           "setup_moves": "R U2 R' U' R U' R'",
@@ -94,6 +100,7 @@
         {
           "id": "oll_26_antisune",
           "name": "OLL 26 - Antisune (Con cá hướng trái)",
+          "name_en": "OLL 26 - Antisune",
           "group": "Step 2: Corners",
           "moves": "R U2 R' U' R U' R'",
           "setup_moves": "R U R' U R U2 R'",
@@ -113,6 +120,7 @@
         {
           "id": "oll_21_h",
           "name": "OLL 21 - H (Chữ thập đối xứng)",
+          "name_en": "OLL 21 - H",
           "group": "Step 2: Corners",
           "moves": "R U R' U R U' R' U R U2 R'",
           "setup_moves": "R U2 R' U' R U R' U' R U' R'",
@@ -132,6 +140,7 @@
         {
           "id": "oll_22_pi",
           "name": "OLL 22 - Pi (Chữ Pi)",
+          "name_en": "OLL 22 - Pi",
           "group": "Step 2: Corners",
           "moves": "R U2 R2 U' R2 U' R2 U2 R",
           "setup_moves": "R' U2 R2 U R2 U R2 U2 R'",
@@ -151,6 +160,7 @@
         {
           "id": "oll_23_headlights",
           "name": "OLL 23 - Headlights (Đèn pha)",
+          "name_en": "OLL 23 - Headlights",
           "group": "Step 2: Corners",
           "moves": "R2 D R' U2 R D' R' U2 R'",
           "setup_moves": "R U2 R D R' U2 R D' R2",
@@ -170,6 +180,7 @@
         {
           "id": "oll_24_chameleon",
           "name": "OLL 24 - Chameleon (Tắc kè)",
+          "name_en": "OLL 24 - Chameleon",
           "group": "Step 2: Corners",
           "moves": "r U R' U' r' F R F'",
           "setup_moves": "F R' F' r U R U' r'",
@@ -189,6 +200,7 @@
         {
           "id": "oll_25_bowtie",
           "name": "OLL 25 - Bowtie (Nơ bướm)",
+          "name_en": "OLL 25 - Bowtie",
           "group": "Step 2: Corners",
           "moves": "F' r U R' U' r' F R",
           "setup_moves": "R' F' r U R U' r' F",
@@ -210,11 +222,14 @@
     {
       "id": "2_look_pll",
       "name": "2-Look PLL",
+      "name_en": "2-Look PLL",
       "description": "Hoán vị tầng 3 qua 2 bước: Hoán vị góc (2 công thức) và Hoán vị cạnh (4 công thức).",
+      "description_en": "Permute the last layer in 2 steps: Corners (2 cases) & Edges (4 cases).",
       "algorithms": [
         {
           "id": "pll_t_perm",
           "name": "T-Perm (Đổi 2 góc kề)",
+          "name_en": "T-Perm (Adjacent Corners)",
           "group": "Step 1: Corners",
           "moves": "R U R' U' R' F R2 U' R' U' R U R' F'",
           "setup_moves": "F R U' R' U R U R2 F' R U R U' R'",
@@ -234,6 +249,7 @@
         {
           "id": "pll_y_perm",
           "name": "Y-Perm (Đổi 2 góc chéo)",
+          "name_en": "Y-Perm (Diagonal Corners)",
           "group": "Step 1: Corners",
           "moves": "F R U' R' U' R U R' F' R U R' U' R' F R F'",
           "setup_moves": "F R' F' R U R U' R' F R U' R' U R U R' F'",
@@ -253,6 +269,7 @@
         {
           "id": "pll_ua_perm",
           "name": "Ua-Perm (Hoán vị 3 cạnh ngược kim đồng hồ)",
+          "name_en": "Ua-Perm (3-Edge CCW)",
           "group": "Step 2: Edges",
           "moves": "R U' R U R U R U' R' U' R2",
           "setup_moves": "R2 U R U R' U' R' U' R' U R'",
@@ -271,6 +288,7 @@
         {
           "id": "pll_ub_perm",
           "name": "Ub-Perm (Hoán vị 3 cạnh cùng kim đồng hồ)",
+          "name_en": "Ub-Perm (3-Edge CW)",
           "group": "Step 2: Edges",
           "moves": "R2 U R U R' U' R' U' R' U R'",
           "setup_moves": "R U' R U R U R U' R' U' R2",
@@ -289,6 +307,7 @@
         {
           "id": "pll_h_perm",
           "name": "H-Perm (Đổi 2 cặp cạnh đối diện)",
+          "name_en": "H-Perm (Opposite Edges)",
           "group": "Step 2: Edges",
           "moves": "M2 U M2 U2 M2 U M2",
           "setup_moves": "M2 U' M2 U2 M2 U' M2",
@@ -308,6 +327,7 @@
         {
           "id": "pll_z_perm",
           "name": "Z-Perm (Đổi 2 cặp cạnh kề nhau)",
+          "name_en": "Z-Perm (Adjacent Edges)",
           "group": "Step 2: Edges",
           "moves": "M' U M2 U M2 U M' U2 M2",
           "setup_moves": "M2 U2 M U' M2 U' M2 U' M",
@@ -328,8 +348,10 @@
     },
     {
       "id": "full_pll_advanced",
-      "name": "Full PLL (Nâng cao tiêu biểu)",
+      "name": "Full PLL (Nâng cao)",
+      "name_en": "Full PLL (Advanced)",
       "description": "Các thế hoán vị 1 bước tốc độ cao cho mục tiêu Sub-15 và Sub-10.",
+      "description_en": "Fast 1-look permutation algorithms for Sub-15 and Sub-10 goals.",
       "algorithms": [
         {
           "id": "pll_jb_perm",

@@ -50,6 +50,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.data.LocalAppLanguage
 import com.example.data.WcaSolveRecord
 import com.example.data.tr
 import com.example.rubik.ExtendedMoveEngine
@@ -108,7 +109,7 @@ fun TutorialScreen(
                     )
                 }
                 Text(
-                    text = tr("Học CFOP & Luyện Thế", "CFOP Tutorial & Trainer"),
+                    text = tr("Học CFOP", "Learn CFOP"),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = InkPrimary,
@@ -125,7 +126,7 @@ fun TutorialScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 TutorialTabPill(
-                    title = tr("Luyện Thế 3D", "3D Trainer"),
+                    title = tr("Luyện tập", "Practice"),
                     icon = Icons.Filled.School,
                     selected = state.activeTab == TutorialTab.TRAINER,
                     onClick = { viewModel.selectTab(TutorialTab.TRAINER) },
@@ -175,6 +176,7 @@ private fun AlgorithmTrainerBody(
     viewModel: TutorialViewModel,
     modifier: Modifier = Modifier
 ) {
+    val lang = LocalAppLanguage.current
     val selectedCategory = state.categories.firstOrNull { it.id == state.selectedCategoryId }
     val algorithms = selectedCategory?.let {
         viewModel.visibleAlgorithmsFor(it, state.filterByTargetLevel, state.userProfile)
@@ -200,7 +202,7 @@ private fun AlgorithmTrainerBody(
                     FilterChip(
                         selected = cat.id == state.selectedCategoryId,
                         onClick = { viewModel.selectCategory(cat.id) },
-                        label = { Text(cat.name) },
+                        label = { Text(cat.localizedName(lang)) },
                         modifier = Modifier.testTag("trainer_cat_${cat.id}")
                     )
                 }
@@ -214,7 +216,7 @@ private fun AlgorithmTrainerBody(
                     FilterChip(
                         selected = selected,
                         onClick = { viewModel.loadAlgorithm(alg, state.mode) },
-                        label = { Text(alg.name, maxLines = 1) },
+                        label = { Text(alg.localizedName(lang), maxLines = 1) },
                         modifier = Modifier.testTag("trainer_alg_${alg.id}")
                     )
                 }
@@ -230,19 +232,19 @@ private fun AlgorithmTrainerBody(
                 FilterChip(
                     selected = state.mode == TrainerMode.LEARN,
                     onClick = { viewModel.setMode(TrainerMode.LEARN) },
-                    label = { Text(tr("Học (Learn)", "Learn")) },
+                    label = { Text(tr("Học", "Learn")) },
                     modifier = Modifier.testTag("trainer_mode_learn")
                 )
                 FilterChip(
                     selected = state.mode == TrainerMode.DRILL,
                     onClick = { viewModel.setMode(TrainerMode.DRILL) },
-                    label = { Text(tr("Luyện phản xạ (Drill)", "Drill")) },
+                    label = { Text(tr("Luyện phản xạ", "Drill")) },
                     modifier = Modifier.testTag("trainer_mode_drill")
                 )
                 FilterChip(
                     selected = state.isRandomAufEnabled,
                     onClick = { viewModel.toggleRandomAuf() },
-                    label = { Text("Random AUF") },
+                    label = { Text("Random") },
                     modifier = Modifier.testTag("trainer_random_auf")
                 )
             }
@@ -261,7 +263,7 @@ private fun AlgorithmTrainerBody(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = currentAlg?.name ?: "",
+                            text = currentAlg?.localizedName(lang) ?: "",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = InkPrimary
@@ -385,7 +387,7 @@ private fun AlgorithmTrainerBody(
                         }
                     } else {
                         Text(
-                            text = tr("Công thức đang ẩn (Chế độ Drill) — bấm [Gợi ý] để xem", "Formula hidden (Drill Mode) — tap [Hint] to reveal"),
+                            text = tr("Công thức đang ẩn — bấm [Gợi ý] để xem", "Formula hidden — tap [Hint] to reveal"),
                             style = MaterialTheme.typography.bodyMedium,
                             color = InkSecondary,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
@@ -491,7 +493,7 @@ private fun AlgorithmTrainerBody(
                 ) {
                     Icon(Icons.Filled.Casino, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(tr("Xáo trộn lại thế cờ (Next)", "Reset & Scramble Case"))
+                    Text(tr("Xáo trộn lại", "Scramble Again"))
                 }
             }
         }

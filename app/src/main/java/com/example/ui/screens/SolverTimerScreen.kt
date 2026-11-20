@@ -505,22 +505,22 @@ private fun CfopGuideContent(
             // Playback controls
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 OutlinedButton(
                     onClick = { viewModel.resetSteps() },
-                    contentPadding = PaddingValues(horizontal = 10.dp),
-                    modifier = Modifier.size(50.dp).testTag("guide_reset_button"),
-                    shape = RoundedCornerShape(16.dp)
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier.size(48.dp).testTag("guide_reset_button"),
+                    shape = RoundedCornerShape(14.dp)
                 ) {
                     Icon(Icons.Filled.Replay, contentDescription = tr("Về đầu", "Reset"))
                 }
                 OutlinedButton(
                     onClick = { viewModel.stepBackward() },
                     enabled = state.currentStepIndex > 0,
-                    contentPadding = PaddingValues(horizontal = 10.dp),
-                    modifier = Modifier.weight(1f).height(50.dp).testTag("guide_prev_button"),
-                    shape = RoundedCornerShape(16.dp)
+                    contentPadding = PaddingValues(horizontal = 6.dp),
+                    modifier = Modifier.weight(1f).height(48.dp).testTag("guide_prev_button"),
+                    shape = RoundedCornerShape(14.dp)
                 ) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(4.dp))
@@ -528,9 +528,9 @@ private fun CfopGuideContent(
                 }
                 Button(
                     onClick = { viewModel.toggleAutoPlay() },
-                    contentPadding = PaddingValues(horizontal = 10.dp),
-                    modifier = Modifier.size(50.dp).testTag("guide_autoplay_button"),
-                    shape = RoundedCornerShape(16.dp),
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier.size(48.dp).testTag("guide_autoplay_button"),
+                    shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = ToyOrange)
                 ) {
                     Icon(
@@ -541,9 +541,9 @@ private fun CfopGuideContent(
                 Button(
                     onClick = { viewModel.stepForward() },
                     enabled = state.currentStepIndex < steps.size,
-                    contentPadding = PaddingValues(horizontal = 10.dp),
-                    modifier = Modifier.weight(1f).height(50.dp).testTag("guide_next_button"),
-                    shape = RoundedCornerShape(16.dp),
+                    contentPadding = PaddingValues(horizontal = 6.dp),
+                    modifier = Modifier.weight(1f).height(48.dp).testTag("guide_next_button"),
+                    shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = RubikBlue)
                 ) {
                     Text(tr("Tiếp", "Next"), maxLines = 1, softWrap = false)
@@ -676,7 +676,7 @@ private fun StepTimerContent(
                             Spacer(modifier = Modifier.height(4.dp))
                         }
                         Text(
-                            text = tr("Đã lưu vào Nhật Ký SQLite!", "Saved to SQLite Log!"),
+                            text = tr("Đã lưu lượt giải!", "Solve Saved!"),
                             style = MaterialTheme.typography.titleLarge,
                             color = InkPrimary
                         )

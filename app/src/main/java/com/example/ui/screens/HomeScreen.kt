@@ -243,13 +243,13 @@ fun HomeScreen(
                             }
                             Spacer(modifier = Modifier.height(10.dp))
                             Text(
-                                text = tr("Tutorial & Thế Cờ", "CFOP Tutorial"),
+                                text = tr("Học CFOP", "Learn CFOP"),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = InkPrimary
                             )
                             Text(
-                                text = tr("Cẩm nang & Luyện OLL/PLL 3D", "Handbook & 3D Alg Trainer"),
+                                text = tr("Cẩm nang & Luyện tập", "Handbook & Practice"),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = InkSecondary
                             )
@@ -278,7 +278,7 @@ fun HomeScreen(
                             }
                             Spacer(modifier = Modifier.height(10.dp))
                             Text(
-                                text = tr("WCA Timer Thi Đấu", "WCA Comp Timer"),
+                                text = tr("Đồng hồ Thi đấu", "Competition Timer"),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
@@ -456,7 +456,11 @@ fun HomeScreen(
                                 color = if (session.sourceType == "CAMERA_VIDEO") SoftBlueSurface else SoftAmberSurface
                             ) {
                                 Text(
-                                    text = if (session.sourceType == "CAMERA_VIDEO") "Camera 30s" else "Practice",
+                                    text = if (session.sourceType == "CAMERA_VIDEO") {
+                                        tr("Quay 30s", "Camera 30s")
+                                    } else {
+                                        tr("Tự tập", "Practice")
+                                    },
                                     style = MaterialTheme.typography.labelLarge,
                                     color = InkPrimary,
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
