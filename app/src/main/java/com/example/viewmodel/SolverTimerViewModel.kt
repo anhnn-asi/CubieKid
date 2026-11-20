@@ -11,6 +11,7 @@ import com.example.rubik.CfopSolution
 import com.example.rubik.CfopSolver
 import com.example.rubik.CfopStage
 import com.example.rubik.CubeState
+import com.example.scanner.ScanSoundPlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -78,6 +79,7 @@ class SolverTimerViewModel(
     private var timerJob: Job? = null
     private var phaseStartMs: Long = 0L
     private var solveStartMs: Long = 0L
+    private var moveSoundEnabled: Boolean = true
 
     init {
         viewModelScope.launch {
@@ -87,6 +89,7 @@ class SolverTimerViewModel(
         }
         viewModelScope.launch {
             settingsRepository.settings.collectLatest { appSettings ->
+                moveSoundEnabled = appSettings.moveSoundEnabled
                 _uiState.update { it.copy(playStepDelayMs = appSettings.playStepDelayMs) }
             }
         }
@@ -131,15 +134,28 @@ class SolverTimerViewModel(
     }
 
     fun stepForward() {
-        val total = _uiState.value.solution?.steps?.size ?: return
+        val state = _uiState.value
+        val steps = state.solution?.steps ?: return
+        if (state.currentStepIndex >= steps.size) return
+        val step = steps[state.currentStepIndex]
         _uiState.update {
-            it.copy(currentStepIndex = (it.currentStepIndex + 1).coerceAtMost(total))
+            it.copy(currentStepIndex = (it.currentStepIndex + 1).coerceAtMost(steps.size))
+        }
+        if (moveSoundEnabled) {
+            ScanSoundPlayer.playRubikMoveClick(isDoubleTurn = step.move.quarterTurns == 2)
         }
     }
 
     fun stepBackward() {
+        val state = _uiState.value
+        val steps = state.solution?.steps ?: return
+        if (state.currentStepIndex <= 0) return
+        val step = steps[state.currentStepIndex - 1]
         _uiState.update {
             it.copy(currentStepIndex = (it.currentStepIndex - 1).coerceAtLeast(0))
+        }
+        if (moveSoundEnabled) {
+            ScanSoundPlayer.playRubikMoveClick(isDoubleTurn = step.move.quarterTurns == 2)
         }
     }
 

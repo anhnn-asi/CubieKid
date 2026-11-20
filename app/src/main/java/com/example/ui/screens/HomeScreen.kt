@@ -79,6 +79,7 @@ fun HomeScreen(
     onOpenTutorial: () -> Unit,
     onOpenCompetitionTimer: () -> Unit,
     onOpenStats: () -> Unit,
+    onOpenProfile: () -> Unit,
     onChangeDailyTarget: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -162,6 +163,51 @@ fun HomeScreen(
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = InkSecondary
                                 )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Surface(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .clickable(onClick = onOpenProfile)
+                                        .testTag("home_badges_pill"),
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = Color.White,
+                                    border = BorderStroke(1.dp, ToyOrange.copy(alpha = 0.5f))
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.EmojiEvents,
+                                            contentDescription = null,
+                                            tint = ToyOrange,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Text(
+                                            text = tr(
+                                                "Huy hiệu: ${state.unlockedBadgesCount}/${state.totalBadgesCount}",
+                                                "Badges: ${state.unlockedBadgesCount}/${state.totalBadgesCount}"
+                                            ),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = InkPrimary
+                                        )
+                                        if (state.unseenBadgesCount > 0) {
+                                            Surface(
+                                                shape = RoundedCornerShape(6.dp),
+                                                color = com.example.ui.theme.ToyRed
+                                            ) {
+                                                Text(
+                                                    text = tr("MỚI", "NEW"),
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = Color.White,
+                                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

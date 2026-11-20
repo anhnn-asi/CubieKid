@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.data.AppLanguage
 import com.example.data.AppSettings
+import com.example.data.MilestoneCatalog
+import com.example.data.MilestoneOverview
+import com.example.data.MilestoneRepository
 import com.example.data.ProfileValidationError
 import com.example.data.ProfileValidationException
 import com.example.data.RubikLevel
@@ -18,7 +21,8 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
-    private val userProfileRepository: UserProfileRepository
+    private val userProfileRepository: UserProfileRepository,
+    private val milestoneRepository: MilestoneRepository
 ) : ViewModel() {
 
     val uiState: StateFlow<AppSettings> = settingsRepository.settings.stateIn(
@@ -32,6 +36,27 @@ class SettingsViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = null
     )
+
+    val milestoneOverview: StateFlow<MilestoneOverview> = milestoneRepository.milestoneOverview.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = MilestoneOverview(
+            badges = MilestoneCatalog.all.map {
+                com.example.data.MilestoneBadgeState(
+                    definition = it,
+                    currentProgress = 0,
+                    isUnlocked = false
+                )
+            }
+        )
+    )
+
+    fun markMilestonesSeen() {
+        viewModelScope.launch {
+            milestoneRepository.syncMilestones()
+            milestoneRepository.markAllSeen()
+        }
+    }
 
     fun setPlayStepDelayMs(delayMs: Long) {
         viewModelScope.launch {
@@ -48,6 +73,12 @@ class SettingsViewModel(
     fun setSoundEnabled(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setSoundEnabled(enabled)
+        }
+    }
+
+    fun setMoveSoundEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setMoveSoundEnabled(enabled)
         }
     }
 
@@ -77,11 +108,12 @@ class SettingsViewModel(
 
     class Factory(
         private val settingsRepository: SettingsRepository,
-        private val userProfileRepository: UserProfileRepository
+        private val userProfileRepository: UserProfileRepository,
+        private val milestoneRepository: MilestoneRepository
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return SettingsViewModel(settingsRepository, userProfileRepository) as T
+            return SettingsViewModel(settingsRepository, userProfileRepository, milestoneRepository) as T
         }
     }
 }

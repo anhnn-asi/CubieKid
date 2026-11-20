@@ -18,7 +18,8 @@ enum class AppLanguage(val code: String, val label: String) {
 data class AppSettings(
     val playStepDelayMs: Long = DEFAULT_PLAY_STEP_DELAY_MS,
     val language: AppLanguage = AppLanguage.VI,
-    val soundEnabled: Boolean = true
+    val soundEnabled: Boolean = true,
+    val moveSoundEnabled: Boolean = true
 ) {
     companion object {
         const val DEFAULT_PLAY_STEP_DELAY_MS = 1000L
@@ -44,7 +45,8 @@ class SettingsRepository(private val cubeDao: CubeDao) {
             AppSettings(
                 playStepDelayMs = entity.playStepDelayMs.coerceIn(300L, 5000L),
                 language = AppLanguage.fromCode(entity.languageCode),
-                soundEnabled = entity.soundEnabled
+                soundEnabled = entity.soundEnabled,
+                moveSoundEnabled = entity.moveSoundEnabled
             )
         }
     }
@@ -63,5 +65,10 @@ class SettingsRepository(private val cubeDao: CubeDao) {
     suspend fun setSoundEnabled(enabled: Boolean) {
         val existing = cubeDao.getSettingsOnce() ?: AppSettingsEntity()
         cubeDao.upsertSettings(existing.copy(id = 1, soundEnabled = enabled))
+    }
+
+    suspend fun setMoveSoundEnabled(enabled: Boolean) {
+        val existing = cubeDao.getSettingsOnce() ?: AppSettingsEntity()
+        cubeDao.upsertSettings(existing.copy(id = 1, moveSoundEnabled = enabled))
     }
 }

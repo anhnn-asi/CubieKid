@@ -71,6 +71,7 @@ class TutorialViewModel(
     private var autoResetJob: Job? = null
     private var moveSeqCounter: Long = 0L
     private var soundEnabled: Boolean = true
+    private var moveSoundEnabled: Boolean = true
 
     init {
         val loadedCategories = algorithmRepository.categories
@@ -93,6 +94,7 @@ class TutorialViewModel(
         viewModelScope.launch {
             settingsRepository.settings.collect { settings ->
                 soundEnabled = settings.soundEnabled
+                moveSoundEnabled = settings.moveSoundEnabled
             }
         }
     }
@@ -197,6 +199,8 @@ class TutorialViewModel(
 
             if (soundEnabled) {
                 ScanSoundPlayer.playTrainerSolvedChime()
+            } else if (moveSoundEnabled) {
+                ScanSoundPlayer.playRubikMoveClick(isDoubleTurn = token.endsWith("2"))
             }
 
             _uiState.update {
@@ -220,6 +224,9 @@ class TutorialViewModel(
                 }
             }
         } else {
+            if (moveSoundEnabled) {
+                ScanSoundPlayer.playRubikMoveClick(isDoubleTurn = token.endsWith("2"))
+            }
             _uiState.update {
                 it.copy(
                     cube = nextCube,

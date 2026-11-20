@@ -10,6 +10,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.PI
+import kotlin.math.exp
 import kotlin.math.sin
 
 /**
@@ -61,10 +62,24 @@ object ScanSoundPlayer {
         }
     }
 
+    fun playRubikMoveClick(isDoubleTurn: Boolean = false) {
+        soundScope.launch {
+            playPcm(buildMoveClickPcm())
+            if (isDoubleTurn) {
+                delay(55L)
+                playPcm(buildMoveClickPcm(baseFreqHz = 510.0))
+            }
+        }
+    }
+
     private suspend fun playTone(freqHz: Double, durationMs: Int) {
+        val sampleRate = 22050
+        val pcm = buildSineWavePcm(freqHz = freqHz, durationMs = durationMs, sampleRate = sampleRate)
+        playPcm(pcm, sampleRate = sampleRate, waitMs = durationMs.toLong() + 30L)
+    }
+
+    private suspend fun playPcm(pcm: ShortArray, sampleRate: Int = 22050, waitMs: Long = 45L) {
         runCatching {
-            val sampleRate = 22050
-            val pcm = buildSineWavePcm(freqHz = freqHz, durationMs = durationMs, sampleRate = sampleRate)
             val track = AudioTrack.Builder()
                 .setAudioAttributes(
                     AudioAttributes.Builder()
@@ -85,11 +100,24 @@ object ScanSoundPlayer {
             try {
                 track.write(pcm, 0, pcm.size)
                 track.play()
-                delay(durationMs.toLong() + 30L)
+                delay(waitMs)
                 track.stop()
             } finally {
                 track.release()
             }
+        }
+    }
+
+    private fun buildMoveClickPcm(baseFreqHz: Double = 440.0, sampleRate: Int = 22050): ShortArray {
+        val durationMs = 34
+        val numSamples = ((sampleRate * durationMs) / 1000).coerceAtLeast(1)
+        return ShortArray(numSamples) { i ->
+            val t = i.toDouble() / numSamples
+            val decay = exp(-6.5 * t)
+            val fundamental = sin(2.0 * PI * baseFreqHz * i / sampleRate)
+            val overtone = 0.45 * sin(2.0 * PI * (baseFreqHz * 2.15) * i / sampleRate)
+            val sample = (fundamental + overtone) * decay * 0.42 * Short.MAX_VALUE
+            sample.toInt().coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
         }
     }
 

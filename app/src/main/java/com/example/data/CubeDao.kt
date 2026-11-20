@@ -68,4 +68,16 @@ interface CubeDao {
 
     @Query("DELETE FROM wca_solves WHERE id = :id")
     suspend fun deleteWcaSolveById(id: Long)
+
+    @Query("SELECT * FROM milestones")
+    fun observeMilestones(): Flow<List<MilestoneProgressEntity>>
+
+    @Query("SELECT * FROM milestones")
+    suspend fun getMilestonesOnce(): List<MilestoneProgressEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertMilestones(items: List<MilestoneProgressEntity>)
+
+    @Query("UPDATE milestones SET seenByUser = 1 WHERE unlockedAtEpochMs IS NOT NULL")
+    suspend fun markAllMilestonesSeen()
 }

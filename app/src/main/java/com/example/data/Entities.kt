@@ -35,7 +35,8 @@ data class AppSettingsEntity(
     @PrimaryKey val id: Int = 1,
     val playStepDelayMs: Long = 1000L,
     val languageCode: String = "vi",
-    val soundEnabled: Boolean = true
+    val soundEnabled: Boolean = true,
+    val moveSoundEnabled: Boolean = true
 )
 
 enum class RubikLevel(
@@ -226,3 +227,145 @@ data class WcaSolveRecord(
         }
     }
 }
+
+@Entity(tableName = "milestones")
+data class MilestoneProgressEntity(
+    @PrimaryKey val id: String,
+    val unlockedAtEpochMs: Long? = null,
+    val seenByUser: Boolean = false
+)
+
+enum class MilestoneCategory {
+    SOLVES,
+    STREAK,
+    SPEED,
+    EXPLORER
+}
+
+data class MilestoneDefinition(
+    val id: String,
+    val category: MilestoneCategory,
+    val targetValue: Int,
+    val viTitle: String,
+    val enTitle: String,
+    val viDescription: String,
+    val enDescription: String,
+    val viUnit: String,
+    val enUnit: String
+)
+
+data class MilestoneBadgeState(
+    val definition: MilestoneDefinition,
+    val currentProgress: Int,
+    val isUnlocked: Boolean,
+    val unlockedAtEpochMs: Long? = null,
+    val isNew: Boolean = false
+) {
+    val progressFraction: Float
+        get() = if (definition.targetValue <= 0) 0f
+        else (currentProgress.toFloat() / definition.targetValue.toFloat()).coerceIn(0f, 1f)
+}
+
+data class MilestoneOverview(
+    val badges: List<MilestoneBadgeState> = emptyList(),
+    val totalSolves: Int = 0,
+    val currentStreakDays: Int = 0
+) {
+    val unlockedCount: Int get() = badges.count { it.isUnlocked }
+    val totalCount: Int get() = badges.size
+    val unseenCount: Int get() = badges.count { it.isUnlocked && it.isNew }
+}
+
+object MilestoneCatalog {
+    val all: List<MilestoneDefinition> = listOf(
+        MilestoneDefinition(
+            id = "first_solve",
+            category = MilestoneCategory.SOLVES,
+            targetValue = 1,
+            viTitle = "Bước Khởi Đầu",
+            enTitle = "First Solve",
+            viDescription = "Hoàn thành lượt giải khối Rubik đầu tiên của bạn!",
+            enDescription = "Complete your very first Rubik's Cube solve!",
+            viUnit = "lần",
+            enUnit = "solve"
+        ),
+        MilestoneDefinition(
+            id = "solved_10",
+            category = MilestoneCategory.SOLVES,
+            targetValue = 10,
+            viTitle = "Giải 10 Lần",
+            enTitle = "Solved 10 Times",
+            viDescription = "Chinh phục thành công 10 lượt giải Rubik.",
+            enDescription = "Complete 10 full Rubik's Cube solves.",
+            viUnit = "lần",
+            enUnit = "solves"
+        ),
+        MilestoneDefinition(
+            id = "solved_50",
+            category = MilestoneCategory.SOLVES,
+            targetValue = 50,
+            viTitle = "Giải 50 Lần",
+            enTitle = "Solved 50 Times",
+            viDescription = "Tay xoay siêu dẻo dai với 50 lần giải hoàn chỉnh!",
+            enDescription = "Build awesome speedcubing habits with 50 solves!",
+            viUnit = "lần",
+            enUnit = "solves"
+        ),
+        MilestoneDefinition(
+            id = "solved_100",
+            category = MilestoneCategory.SOLVES,
+            targetValue = 100,
+            viTitle = "Giải 100 Lần",
+            enTitle = "Solved 100 Times",
+            viDescription = "Đạt cột mốc 100 lượt giải Rubik — bạn là bậc thầy kiên trì!",
+            enDescription = "Reach 100 Rubik's Cube solves — true dedication!",
+            viUnit = "lần",
+            enUnit = "solves"
+        ),
+        MilestoneDefinition(
+            id = "streak_3",
+            category = MilestoneCategory.STREAK,
+            targetValue = 3,
+            viTitle = "Chuỗi 3 Ngày",
+            enTitle = "3-Day Streak",
+            viDescription = "Luyện tập đều đặn 3 ngày liên tiếp không nghỉ.",
+            enDescription = "Practice consistently for 3 days in a row.",
+            viUnit = "ngày",
+            enUnit = "days"
+        ),
+        MilestoneDefinition(
+            id = "streak_7",
+            category = MilestoneCategory.STREAK,
+            targetValue = 7,
+            viTitle = "Chuỗi 7 Ngày",
+            enTitle = "Practice Streak 7 Days",
+            viDescription = "Giữ vững ngọn lửa luyện tập trọn vẹn 1 tuần (7 ngày liên tiếp)!",
+            enDescription = "Keep your practice streak burning for a full 7 days in a row!",
+            viUnit = "ngày",
+            enUnit = "days"
+        ),
+        MilestoneDefinition(
+            id = "camera_explorer",
+            category = MilestoneCategory.EXPLORER,
+            targetValue = 1,
+            viTitle = "Thợ Quét Camera",
+            enTitle = "Camera Explorer",
+            viDescription = "Quét 6 mặt Rubik thật bằng camera 30 giây và giải thành công.",
+            enDescription = "Scan a real Rubik's Cube with the 30s camera and solve it.",
+            viUnit = "lần quét",
+            enUnit = "scan"
+        ),
+        MilestoneDefinition(
+            id = "speed_sub_30",
+            category = MilestoneCategory.SPEED,
+            targetValue = 1,
+            viTitle = "Tia Chớp Sub-30",
+            enTitle = "Sub-30 Speedster",
+            viDescription = "Hoàn thành một lượt giải trong thời gian dưới 30 giây!",
+            enDescription = "Finish any timed solve in under 30 seconds!",
+            viUnit = "lượt <30s",
+            enUnit = "sub-30s"
+        )
+    )
+}
+

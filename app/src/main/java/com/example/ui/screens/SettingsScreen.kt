@@ -25,8 +25,10 @@ import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.SlowMotionVideo
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -77,9 +79,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.data.LocalAppLanguage
+import com.example.data.MilestoneOverview
 import com.example.data.ProfileValidationError
 import com.example.data.RubikLevel
 import com.example.data.UserProfile
+import com.example.ui.components.MilestoneBadgesSection
 import com.example.ui.theme.SoftGreenSurface
 import com.example.ui.theme.ToyRed
 
@@ -88,6 +92,8 @@ import com.example.ui.theme.ToyRed
 fun SettingsScreen(
     settings: AppSettings,
     userProfile: UserProfile?,
+    milestoneOverview: MilestoneOverview,
+    onAcknowledgeNewBadges: () -> Unit,
     onSaveUserProfile: (
         name: String,
         age: Int,
@@ -98,6 +104,7 @@ fun SettingsScreen(
     onSelectPlaySpeedMs: (Long) -> Unit,
     onSelectLanguage: (AppLanguage) -> Unit,
     onToggleSound: (Boolean) -> Unit,
+    onToggleMoveSound: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val lang = LocalAppLanguage.current
@@ -128,14 +135,14 @@ fun SettingsScreen(
         ) {
             item {
                 Text(
-                    text = tr("Cài Đặt", "Settings"),
+                    text = tr("Hồ Sơ & Cài Đặt", "Profile & Settings"),
                     style = MaterialTheme.typography.headlineLarge,
                     color = InkPrimary
                 )
                 Text(
                     text = tr(
-                        "Tùy chỉnh hồ sơ trình độ, tốc độ xoay, âm thanh và ngôn ngữ",
-                        "Customize player profile, rotation speed, sound effects, and language"
+                        "Quản lý hồ sơ, huy hiệu thành tích, tốc độ xoay và ngôn ngữ",
+                        "View your profile, achievement badges, rotation speed, and language"
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = InkSecondary
@@ -342,58 +349,121 @@ fun SettingsScreen(
                 }
             }
 
+            // 0b. Achievement Milestone Badges Showcase
+            item {
+                MilestoneBadgesSection(
+                    overview = milestoneOverview,
+                    onAcknowledgeNewBadges = onAcknowledgeNewBadges
+                )
+            }
+
             // 1. Sound Effects Toggle Card
             item {
+                val anySoundOn = settings.moveSoundEnabled || settings.soundEnabled
                 ToyBlockCard(
                     containerColor = Color.White,
-                    borderColor = if (settings.soundEnabled) ToyGreen.copy(alpha = 0.45f) else OutlineSoft
+                    borderColor = if (anySoundOn) ToyGreen.copy(alpha = 0.45f) else OutlineSoft
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(14.dp),
-                            color = if (settings.soundEnabled) ToyGreen.copy(alpha = 0.14f) else SoftBlueSurface,
-                            modifier = Modifier.size(44.dp)
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        // Toggle 1: Rubik Move Sound Effects
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = if (settings.soundEnabled) {
-                                        Icons.AutoMirrored.Filled.VolumeUp
-                                    } else {
-                                        Icons.AutoMirrored.Filled.VolumeOff
-                                    },
-                                    contentDescription = null,
-                                    tint = if (settings.soundEnabled) ToyGreen else InkSecondary
+                            Surface(
+                                shape = RoundedCornerShape(14.dp),
+                                color = if (settings.moveSoundEnabled) ToyGreen.copy(alpha = 0.14f) else SoftBlueSurface,
+                                modifier = Modifier.size(44.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = if (settings.moveSoundEnabled) {
+                                            Icons.Filled.MusicNote
+                                        } else {
+                                            Icons.AutoMirrored.Filled.VolumeOff
+                                        },
+                                        contentDescription = null,
+                                        tint = if (settings.moveSoundEnabled) ToyGreen else InkSecondary
+                                    )
+                                }
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = tr("Âm thanh xoay Rubik", "Rubik Move Sound Effects"),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = InkPrimary
+                                )
+                                Text(
+                                    text = tr(
+                                        "Phát tiếng lách tách mỗi bước xoay khi giải & luyện 3D",
+                                        "Play crisp click sounds on each cube turn in playback & 3D practice"
+                                    ),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = InkSecondary
                                 )
                             }
-                        }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = tr("Âm thanh khi quét video", "Video Scan Sound"),
-                                style = MaterialTheme.typography.titleLarge,
-                                color = InkPrimary
-                            )
-                            Text(
-                                text = tr(
-                                    "Báo 1 tiếng khi nhận 1 mặt, 2 tiếng khi đủ 6 mặt",
-                                    "1 beep per face detected, 2 beeps when all 6 faces are done"
+                            Switch(
+                                checked = settings.moveSoundEnabled,
+                                onCheckedChange = onToggleMoveSound,
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = ToyGreen
                                 ),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = InkSecondary
+                                modifier = Modifier.testTag("settings_move_sound_switch")
                             )
                         }
-                        Switch(
-                            checked = settings.soundEnabled,
-                            onCheckedChange = onToggleSound,
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.White,
-                                checkedTrackColor = ToyGreen
-                            ),
-                            modifier = Modifier.testTag("settings_sound_switch")
-                        )
+
+                        HorizontalDivider(color = OutlineSoft.copy(alpha = 0.7f))
+
+                        // Toggle 2: Camera Scan & Timer Alerts
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(14.dp),
+                                color = if (settings.soundEnabled) ToyGreen.copy(alpha = 0.14f) else SoftBlueSurface,
+                                modifier = Modifier.size(44.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = if (settings.soundEnabled) {
+                                            Icons.AutoMirrored.Filled.VolumeUp
+                                        } else {
+                                            Icons.AutoMirrored.Filled.VolumeOff
+                                        },
+                                        contentDescription = null,
+                                        tint = if (settings.soundEnabled) ToyGreen else InkSecondary
+                                    )
+                                }
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = tr("Âm thanh quét & đồng hồ", "Scanner & Timer Audio"),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = InkPrimary
+                                )
+                                Text(
+                                    text = tr(
+                                        "Báo 1 tiếng khi nhận 1 mặt, 2 tiếng khi quét đủ 6 mặt",
+                                        "1 beep on face recognition, 2 beeps when full cube is scanned"
+                                    ),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = InkSecondary
+                                )
+                            }
+                            Switch(
+                                checked = settings.soundEnabled,
+                                onCheckedChange = onToggleSound,
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = ToyGreen
+                                ),
+                                modifier = Modifier.testTag("settings_sound_switch")
+                            )
+                        }
                     }
                 }
             }

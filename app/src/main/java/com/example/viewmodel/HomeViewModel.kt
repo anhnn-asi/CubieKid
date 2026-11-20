@@ -3,6 +3,9 @@ package com.example.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.data.MilestoneCatalog
+import com.example.data.MilestoneOverview
+import com.example.data.MilestoneRepository
 import com.example.data.SolveSessionEntity
 import com.example.data.TrainingRepository
 import com.example.data.UserProfile
@@ -27,17 +30,21 @@ data class HomeUiState(
     val wcaTotalSolves: Int = 0,
     val wcaPb: WcaMetric = WcaMetric.None,
     val wcaAo5: WcaMetric = WcaMetric.None,
-    val wcaAo12: WcaMetric = WcaMetric.None
+    val wcaAo12: WcaMetric = WcaMetric.None,
+    val unlockedBadgesCount: Int = 0,
+    val totalBadgesCount: Int = MilestoneCatalog.all.size,
+    val unseenBadgesCount: Int = 0
 )
 
 class HomeViewModel(
     private val repository: TrainingRepository,
     private val userProfileRepository: UserProfileRepository,
     private val wcaTimerRepository: WcaTimerRepository,
+    private val milestoneRepository: MilestoneRepository,
     private val appContainer: AppContainer
 ) : ViewModel() {
 
-    val uiState: StateFlow<HomeUiState> = combine(
+    private val baseMetricsFlow = combine(
         repository.allSessions,
         repository.recentDailyGoals,
         repository.observeTodayGoal(),
@@ -57,6 +64,18 @@ class HomeViewModel(
             wcaPb = wcaTimerRepository.computeBestPb(wcaSolves),
             wcaAo5 = wcaTimerRepository.computeWcaAo5(wcaSolves),
             wcaAo12 = wcaTimerRepository.computeWcaAo12(wcaSolves)
+        )
+    }
+
+    val uiState: StateFlow<HomeUiState> = combine(
+        baseMetricsFlow,
+        milestoneRepository.milestoneOverview
+    ) { base: HomeUiState, milestones: MilestoneOverview ->
+        base.copy(
+            streakDays = maxOf(base.streakDays, milestones.currentStreakDays),
+            unlockedBadgesCount = milestones.unlockedCount,
+            totalBadgesCount = milestones.totalCount,
+            unseenBadgesCount = milestones.unseenCount
         )
     }.stateIn(
         scope = viewModelScope,
@@ -78,6 +97,7 @@ class HomeViewModel(
         private val repository: TrainingRepository,
         private val userProfileRepository: UserProfileRepository,
         private val wcaTimerRepository: WcaTimerRepository,
+        private val milestoneRepository: MilestoneRepository,
         private val appContainer: AppContainer
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
@@ -86,6 +106,7 @@ class HomeViewModel(
                 repository = repository,
                 userProfileRepository = userProfileRepository,
                 wcaTimerRepository = wcaTimerRepository,
+                milestoneRepository = milestoneRepository,
                 appContainer = appContainer
             ) as T
         }

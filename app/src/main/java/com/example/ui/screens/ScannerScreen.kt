@@ -55,6 +55,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -122,9 +123,10 @@ fun ScannerScreen(
         hasCameraPermission = granted
     }
 
-    LaunchedEffect(viewModel, soundEnabled) {
+    val latestSoundEnabled by rememberUpdatedState(soundEnabled)
+    LaunchedEffect(viewModel) {
         viewModel.soundEvents.collect { event ->
-            if (!soundEnabled) return@collect
+            if (!latestSoundEnabled) return@collect
             when (event) {
                 ScanSoundEvent.SINGLE_FACE_CAPTURED -> ScanSoundPlayer.playSingleFaceBeep()
                 ScanSoundEvent.ALL_SIX_FACES_CAPTURED -> ScanSoundPlayer.playAllSixFacesBeep()

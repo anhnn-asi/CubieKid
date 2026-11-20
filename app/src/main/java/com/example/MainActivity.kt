@@ -110,7 +110,8 @@ fun CubieKidApp(appContainer: AppContainer) {
     val settingsViewModel: SettingsViewModel = viewModel(
         factory = SettingsViewModel.Factory(
             appContainer.settingsRepository,
-            appContainer.userProfileRepository
+            appContainer.userProfileRepository,
+            appContainer.milestoneRepository
         )
     )
 
@@ -200,6 +201,7 @@ private fun MainCubieNavHost(
             appContainer.trainingRepository,
             appContainer.userProfileRepository,
             appContainer.wcaTimerRepository,
+            appContainer.milestoneRepository,
             appContainer
         )
     )
@@ -232,6 +234,7 @@ private fun MainCubieNavHost(
 
     val appSettings by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val userProfile by settingsViewModel.userProfile.collectAsStateWithLifecycle()
+    val milestoneOverview by settingsViewModel.milestoneOverview.collectAsStateWithLifecycle()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
@@ -320,6 +323,7 @@ private fun MainCubieNavHost(
                             onOpenTutorial = { navController.navigate(CubieRoutes.TUTORIAL) },
                             onOpenCompetitionTimer = { navController.navigate(CubieRoutes.COMPETITION_TIMER) },
                             onOpenStats = { navigateTopLevel(CubieRoutes.STATS) },
+                            onOpenProfile = { navigateTopLevel(CubieRoutes.SETTINGS) },
                             onChangeDailyTarget = { homeViewModel.updateDailyTarget(it) }
                         )
                     }
@@ -356,12 +360,15 @@ private fun MainCubieNavHost(
                         SettingsScreen(
                             settings = appSettings,
                             userProfile = userProfile,
+                            milestoneOverview = milestoneOverview,
+                            onAcknowledgeNewBadges = { settingsViewModel.markMilestonesSeen() },
                             onSaveUserProfile = { name, age, cur, target, onRes ->
                                 settingsViewModel.updateUserProfile(name, age, cur, target, onRes)
                             },
                             onSelectPlaySpeedMs = { settingsViewModel.setPlayStepDelayMs(it) },
                             onSelectLanguage = { settingsViewModel.setLanguage(it) },
-                            onToggleSound = { settingsViewModel.setSoundEnabled(it) }
+                            onToggleSound = { settingsViewModel.setSoundEnabled(it) },
+                            onToggleMoveSound = { settingsViewModel.setMoveSoundEnabled(it) }
                         )
                     }
                     composable(CubieRoutes.TUTORIAL) {

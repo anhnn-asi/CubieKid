@@ -69,22 +69,31 @@ class ExampleRobolectricTest {
     }
 
     @Test
-    fun `settings repository defaults to 1000ms play speed and switches language`() = runTest {
+    fun `settings repository defaults to 1000ms play speed and persists sound toggles`() = runTest {
         val settingsRepo = com.example.data.SettingsRepository(db.cubeDao())
 
         val initial = settingsRepo.settings.first()
         assertEquals(1000L, initial.playStepDelayMs)
         assertEquals(com.example.data.AppLanguage.VI, initial.language)
         assertTrue(initial.soundEnabled)
+        assertTrue(initial.moveSoundEnabled)
 
         settingsRepo.setPlayStepDelayMs(2000L)
         settingsRepo.setLanguage(com.example.data.AppLanguage.EN)
         settingsRepo.setSoundEnabled(false)
+        settingsRepo.setMoveSoundEnabled(false)
 
         val updated = settingsRepo.settings.first()
         assertEquals(2000L, updated.playStepDelayMs)
         assertEquals(com.example.data.AppLanguage.EN, updated.language)
         assertEquals(false, updated.soundEnabled)
+        assertEquals(false, updated.moveSoundEnabled)
+
+        // Verify audio trigger methods run safely
+        com.example.scanner.ScanSoundPlayer.playRubikMoveClick(isDoubleTurn = false)
+        com.example.scanner.ScanSoundPlayer.playRubikMoveClick(isDoubleTurn = true)
+        com.example.scanner.ScanSoundPlayer.playSingleFaceBeep()
+        com.example.scanner.ScanSoundPlayer.playAllSixFacesBeep()
     }
 
     @Test
@@ -219,5 +228,78 @@ class ExampleRobolectricTest {
         for (i in 1 until tokens.size) {
             assertTrue("Adjacent same face in $scramble", tokens[i][0] != tokens[i - 1][0])
         }
+    }
+
+    @Test
+    fun `milestone repository tracks 100 solves, 7 day streak, and persists unlocked badges`() = runTest {
+        val dao = db.cubeDao()
+        val milestoneRepo = com.example.data.MilestoneRepository(dao)
+
+        // Create 7 consecutive days of daily goals ending today + 100 WCA/CFOP solves
+        val cal = java.util.Calendar.getInstance()
+        val nowMs = cal.timeInMillis
+        for (dayOffset in 0 until 7) {
+            val dayCal = java.util.Calendar.getInstance().apply {
+                timeInMillis = nowMs
+                add(java.util.Calendar.DAY_OF_YEAR, -dayOffset)
+            }
+            val dateKey = TrainingRepository.formatDateKey(dayCal.timeInMillis)
+            dao.upsertDailyGoal(
+                com.example.data.DailyGoalEntity(
+                    dateKey = dateKey,
+                    targetSolves = 5,
+                    completedSolves = 1,
+                    bestTimeMs = 25000L,
+                    totalTimeMs = 25000L
+                )
+            )
+        }
+        repeat(99) { idx ->
+            dao.insertWcaSolve(
+                com.example.data.WcaSolveEntity(
+                    timeMillis = 28500L,
+                    penaltyName = com.example.data.WcaPenalty.NONE.name,
+                    scramble = "R U R' U'",
+                    timestamp = nowMs - idx * 1000L
+                )
+            )
+        }
+        dao.insertSession(
+            com.example.data.SolveSessionEntity(
+                createdAtEpochMs = nowMs,
+                dateKey = TrainingRepository.formatDateKey(nowMs),
+                sourceType = "CAMERA_VIDEO",
+                scrambleNotation = "30s Video Scan",
+                totalDurationMs = 27000L,
+                crossMs = 4000L,
+                f2lMs = 12000L,
+                ollMs = 5000L,
+                pllMs = 6000L,
+                crossMoveCount = 6,
+                totalMoveCount = 45,
+                solutionNotation = "R U R'",
+                isPersonalBest = true
+            )
+        )
+
+        milestoneRepo.syncMilestones(nowEpochMs = nowMs)
+        val overview = milestoneRepo.milestoneOverview.first()
+        assertEquals(100, overview.totalSolves)
+        assertEquals(7, overview.currentStreakDays)
+        assertEquals(8, overview.unlockedCount)
+        assertEquals(8, overview.unseenCount)
+
+        val solved100 = overview.badges.first { it.definition.id == "solved_100" }
+        val streak7 = overview.badges.first { it.definition.id == "streak_7" }
+        assertTrue(solved100.isUnlocked)
+        assertTrue(streak7.isUnlocked)
+        assertEquals("Solved 100 Times", solved100.definition.enTitle)
+        assertEquals("Practice Streak 7 Days", streak7.definition.enTitle)
+
+        // Mark all seen and verify unseenCount drops to 0 in SQLite
+        milestoneRepo.markAllSeen()
+        val afterSeen = milestoneRepo.milestoneOverview.first()
+        assertEquals(0, afterSeen.unseenCount)
+        assertEquals(8, afterSeen.unlockedCount)
     }
 }
