@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">CubieKid CFOP</string>
+    <string name="nav_home">Trang chủ</string>
+    <string name="nav_scan">Quét Rubik</string>
+    <string name="nav_solve">Giải &amp; Tập</string>
+    <string name="nav_progress">Tiến độ</string>
+    <string name="camera_permission_rationale">Cubie cần dùng Camera để quay video khối Rubik trong 30 giây và nhận diện màu sắc giúp bé nhé!</string>
+    <string name="grant_camera_permission">Cho phép Camera / Allow Camera</string>
+</resources>

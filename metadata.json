@@ -1,0 +1,6 @@
+{
+  "name": "CubieKid CFOP",
+  "description": "Ứng dụng giải Rubik 3x3 phương pháp CFOP tối ưu fingertrick cho bé 5-10 tuổi với quét video 30 giây và lưu tiến độ luyện tập hàng ngày.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
